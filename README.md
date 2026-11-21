@@ -19,20 +19,15 @@ This project enforces a **Single-Agent First** policy: the main agent must handl
 
 ## 🛡️ Core Rules & Prohibitions
 
-### Strict Red Lines (Never Use Subagents)
-- ❌ **Code & File Search**: Grepping or finding files (`rg`, `search_files`).
-- ❌ **Single-File Changes & Bug Fixes**: Routine edits, bug diagnosis, and test runs.
-- ❌ **Shell & Build Execution**: Running compilation, npm/Python tests, or git commands.
-- ❌ **Sequential Tasks**: Multi-step workflows where step N depends on step N-1.
-- ❌ **Brainstorming / Planning**: The primary agent already has full extended thinking capabilities.
+### Default Direct-Execution Cases
 
-### Strict Exceptions (Only When Allowed)
-- ✅ **Explicit User Directive**: The user explicitly requests subagents or teamwork (e.g. `/teamwork`).
-- ✅ **Massive Independent Fan-Out**: Static inspection across hundreds of modules exceeding context limits.
-- ✅ **Environment Isolation**: High-risk destructive branch evaluations (`workspace: "branch"`).
-- ✅ **Extreme Log Excavation**: Parsing tens of thousands of log lines that would pollute main context.
+The primary agent handles code search, single-file changes, bug fixes, tests, builds, Git commands, brainstorming, and sequential workflows directly. These are efficiency defaults rather than platform security boundaries.
 
----
+### Controlled Delegation Conditions
+
+Delegation is allowed when the user explicitly requests it, or when there is a large independent fan-out or an isolated high-risk branch. User direction removes the default efficiency restriction but does not bypass least privilege, disjoint write sets, credential isolation, cancellation, or external-write approval.
+
+Before dispatch, record the task input, output, timeout, cancellation path, write set, and required permissions. If the host governor is unavailable, use a conservative single-active-worker fallback.
 
 ## 📂 Repository Structure
 
@@ -51,42 +46,8 @@ antigravity-subagent-governance/
 
 ---
 
-## 🚀 Installation
+## Installation
 
-### Global Setup (Recommended)
-Copy the skill and rule to your global Antigravity configuration directory:
+Start in one workspace. Copy its skill folder to `.agents/skills/subagent-governance/`. Review the rule in [rules/AGENTS.md](rules/AGENTS.md) and merge its relevant section once into the workspace `AGENTS.md`, preserving existing rules. To upgrade, replace that skill folder and update that same section in place. To uninstall, remove the installed skill folder and the section you added.
 
-**Windows (PowerShell):**
-```powershell
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.gemini\config\skills"
-Copy-Item -Recurse -Force ".\skills\subagent-governance" "$env:USERPROFILE\.gemini\config\skills\"
-
-# Append governance rule to global AGENTS.md
-Get-Content ".\rules\AGENTS.md" | Add-Content "$env:USERPROFILE\.gemini\config\AGENTS.md"
-```
-
-**macOS / Linux:**
-```bash
-mkdir -p ~/.gemini/config/skills
-cp -r ./skills/subagent-governance ~/.gemini/config/skills/
-cat ./rules/AGENTS.md >> ~/.gemini/config/AGENTS.md
-```
-
-### Workspace Setup
-Place `AGENTS.md` in your repository root and the skill under `.agents/skills/subagent-governance/`.
-
----
-
-## 📊 Decision Flow
-
-```mermaid
-flowchart TD
-    Start["Consider Delegating to Subagent"] --> Q1{"Explicitly requested by user?<br/>(e.g., /teamwork)"}
-    Q1 -->|"Yes"| CheckQuota["Check host quota limits (max 3 concurrent)"]
-    Q1 -->|"No"| Q2{"Can primary agent complete directly?<br/>(99% of development tasks)"}
-    Q2 -->|"Yes"| Reject["REJECT: Primary agent executes directly"]
-    Q2 -->|"No"| Q3{"Massive independent fan-out or<br/>isolated destructive branch needed?"}
-    Q3 -->|"No"| Reject
-    Q3 -->|"Yes"| CheckQuota
-    CheckQuota --> Approve["Controlled Delegation (Release immediately when done)"]
-```
+For global use, follow Antigravity’s [rules](https://antigravity.google/docs/rules) and [skills](https://antigravity.google/docs/skills) documentation for your installed version. Avoid redundant global and workspace copies. Check that the client discovers the skill and rule in a fresh conversation.
