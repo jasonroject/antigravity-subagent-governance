@@ -1,6 +1,6 @@
 # Antigravity Subagent Governance (`antigravity-subagent-governance`)
 
-Strict subagent restriction guidelines, decision matrix, and concurrency governance rules for **Google Antigravity**.
+Strict subagent restriction guidelines, decision matrix, and concurrency governance rules for the **Google Antigravity desktop client on Windows**.
 
 ---
 
